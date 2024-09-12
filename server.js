@@ -22,26 +22,31 @@ const pool = new Pool({
 });
 
 
-// async function addQuestionToDatabase(message, response) {
-//     try {
-//         const embedding = await getEmbedding(message);
-//         if (embedding.length !== 1536) {
-//             throw new Error(`Expected 1536 dimensions, but got ${embedding.length}`);
-//         }
-//         const embeddingString = `[${embedding.join(', ')}]`;
-//         await pool.query(`
-//             INSERT INTO chatbot (message, response, embedding)
-//             VALUES ($1, $2, $3::vector(1536));
-//         `, [message, response, embeddingString]);
-//         console.log('Successfully added question to database.');
-//     } catch (err) {
-//         console.error('Error adding question to database:', err);
-//     }
-// }
-// addQuestionToDatabase(
-//     "How do I log in to my account? - Facebook", 
-//     "Please click the 'Log in with Facebook' button.\n\n![pic](https://static-dev-baodao.s3.ap-northeast-2.amazonaws.com/FAQ/How+do+I+log+in+to+my+account%3F+-+Facebook1.png)\n\nClick the continue button, you'll be redirected back to the website\n\n![pic](https://static-dev-baodao.s3.ap-northeast-2.amazonaws.com/FAQ/How+do+I+log+in+to+my+account%3F+-+Facebook2.png)\n\nYou're in! Start your Mandarin learning journey with BaoDao Talk.\n\n![pic](https://static-dev-baodao.s3.ap-northeast-2.amazonaws.com/FAQ/How+do+I+log+in+to+my+account%3F+-+Facebook3.png)"
-// );
+app.post('/api/add-question', async (req, res) => {
+    const { message, response } = req.body;
+
+    if (!message || !response) {
+        return res.status(400).json({ error: 'Message and response are required' });
+    }
+
+    try {
+        const embedding = await getEmbedding(message);
+        if (embedding.length !== 1536) {
+            throw new Error(`Expected 1536 dimensions, but got ${embedding.length}`);
+        }
+        const embeddingString = `[${embedding.join(', ')}]`;
+
+        await pool.query(`
+            INSERT INTO chatbot (message, response, embedding)
+            VALUES ($1, $2, $3::vector(1536));
+        `, [message, response, embeddingString]);
+
+        res.status(201).json({ message: 'Question successfully added to database' });
+    } catch (err) {
+        console.error('Error adding question to database:', err);
+        res.status(500).json({ error: 'An error occurred while adding the question' });
+    }
+});
 
 async function translateResponse(userQuery, response) {
     const completion = await openai.chat.completions.create({
@@ -51,13 +56,14 @@ async function translateResponse(userQuery, response) {
                 role: "system",
                 content: `You are a translator. Follow these steps:
                 1. Identify the language of the user's query.
-                2. If the user's query is not in English, translate the response into that language.
-                3. Do NOT translate any Markdown syntax, URLs, or text within backticks or square brackets.
-                4. Preserve all formatting, including newlines, bold, italic, and list structures.
-                5. If the user's query is in English, do not translate, return the original response.
-                6. If the user's language is Chinese, use Traditional Chinese (zh-tw) for the translation, not Simplified Chinese.
-                7. Output the translated content directly, without adding any extra explanations or labels.`
-                
+                2. Identify the language of the response to be translated.
+                3. Translate the response into the language of the user's query.
+                4. Do NOT translate any Markdown syntax, URLs, or text within backticks or square brackets.
+                5. Preserve all formatting, including newlines, bold, italic, and list structures.
+                6. If the user's query and the response are already in the same language, return the original response without translation.
+                7. If the user's language is Chinese, use Traditional Chinese (zh-tw) for the translation, not Simplified Chinese.
+                8. Ensure that the final output is in the same language as the user's query, regardless of the original response language.
+                9. Output ONLY the translated or original text without any explanations, summaries, or metadata about the translation process.`
             },
             {
                 role: "user",
