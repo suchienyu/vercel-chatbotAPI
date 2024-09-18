@@ -1,7 +1,15 @@
 const express = require('express');
 const { OpenAI } = require("openai");
 const { Pool } = require('pg');
-require('dotenv').config();
+//require('dotenv').config();
+const dotenv = require('dotenv');
+if (process.env.NODE_ENV === 'local') {
+    // 如果是 'local'，则加载 .local 文件
+    dotenv.config({ path: './.local' });
+  } else {
+    // 否则，加载 .env 文件
+    dotenv.config();
+  }
 const tf = require('@tensorflow/tfjs-node');
 
 const app = express();
@@ -21,7 +29,7 @@ const pool = new Pool({
     database: process.env.DB_DATABASE
 });
 
-
+console.log(process.env.NODE_ENV)
 app.post('/api/add-question', async (req, res) => {
     const { message, response } = req.body;
 
@@ -34,11 +42,13 @@ app.post('/api/add-question', async (req, res) => {
         if (embedding.length !== 1536) {
             throw new Error(`Expected 1536 dimensions, but got ${embedding.length}`);
         }
-        const embeddingString = `[${embedding.join(', ')}]`;
+
+        // 将 embedding 数组转换为 JSON 字符串
+        const embeddingString = JSON.stringify(embedding);
 
         await pool.query(`
             INSERT INTO chatbot (message, response, embedding)
-            VALUES ($1, $2, $3::vector(1536));
+            VALUES ($1, $2, $3);
         `, [message, response, embeddingString]);
 
         res.status(201).json({ message: 'Question successfully added to database' });

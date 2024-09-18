@@ -20,22 +20,6 @@ services:
     #   until pg_isready -h localhost -p 5432; do sleep 1; done;
     #   psql -U postgres -d postgres -c 'CREATE EXTENSION IF NOT EXISTS vector;'"
 
-  api:
-    container_name: api2
-    image: chiennn/ttodoapi:latest
-    platform: linux/amd64
-    restart: always
-    ports:
-      - 5001:5001
-    environment:
-      PORT: 5001
-      DB_USER: postgres
-      DB_HOST: postgres
-      DB_DATABASE: postgres
-      DB_PASSWORD: password
-      DB_PORT: 5432
-    depends_on:
-      - postgres
 
   pgadmin:
     image: dpage/pgadmin4:latest

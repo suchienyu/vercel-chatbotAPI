@@ -15,6 +15,9 @@ COPY package*.json ./
 
 RUN npm install 
 
+ADD https://github.com/vishnubob/wait-for-it/raw/master/wait-for-it.sh /usr/local/bin/wait-for-it
+RUN chmod +x /usr/local/bin/wait-for-it
+
 ENV NODE_ENV production
 COPY . . 
 RUN rm -rf node_modules && npm install
