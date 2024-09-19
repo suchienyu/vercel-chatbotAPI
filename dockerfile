@@ -21,5 +21,5 @@ RUN chmod +x /usr/local/bin/wait-for-it
 ENV NODE_ENV production
 COPY . . 
 RUN rm -rf node_modules && npm install
-EXPOSE 3000
+EXPOSE 3002
 CMD npm start 

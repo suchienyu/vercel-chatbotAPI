@@ -28,8 +28,17 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE
 });
-
+console.log('!!',{
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE
+})
 console.log(process.env.NODE_ENV)
+app.get('/health',(req,res)=>{
+    res.send("我還活著")
+})
 app.post('/api/add-question', async (req, res) => {
     const { message, response } = req.body;
 
