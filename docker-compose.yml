@@ -19,7 +19,7 @@ services:
 
   api:
     container_name: api3
-    image: chiennn/chatbotapi-api:latest
+    image: chiennn/gemini-api:latest
     platform: linux/amd64
     restart: always
     ports:
@@ -39,7 +39,7 @@ services:
 
   chatbotfront:
     container_name: chatbotfront
-    image: chiennn/chatbotapi-chatbotfront:latest
+    image: chiennn/gemini-front:latest
     #platform: linux/amd64
     restart: always
     ports:

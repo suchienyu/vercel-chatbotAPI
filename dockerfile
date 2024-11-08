@@ -1,25 +1,39 @@
-# FROM postgres:13.2-alpine
+# FROM node:latest 
+# WORKDIR /chien/src/app 
+# COPY package*.json ./ 
 
-# RUN apk add --no-cache make gcc g++ clang llvm10 wget
+# RUN npm install 
 
-# RUN wget https://github.com/pgvector/pgvector/archive/refs/tags/v0.1.4.tar.gz \
-#     && tar -xzvf v0.1.4.tar.gz \
-#     && cd pgvector-0.1.4 \
-#     && make && make install
+# ADD https://github.com/vishnubob/wait-for-it/raw/master/wait-for-it.sh /usr/local/bin/wait-for-it
+# RUN chmod +x /usr/local/bin/wait-for-it
 
-# RUN apk del make gcc g++ clang llvm10
+# ENV NODE_ENV production
+# COPY . . 
+# RUN rm -rf node_modules && npm install
+# EXPOSE 3002
+# CMD npm start 
 
 FROM node:latest 
+RUN apt-get update && apt-get install -y \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /chien/src/app 
+
 COPY package*.json ./ 
 
 RUN npm install 
 
-ADD https://github.com/vishnubob/wait-for-it/raw/master/wait-for-it.sh /usr/local/bin/wait-for-it
-RUN chmod +x /usr/local/bin/wait-for-it
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+COPY . .
 
 ENV NODE_ENV production
-COPY . . 
+ENV PORT=3002
+
 RUN rm -rf node_modules && npm install
 EXPOSE 3002
-CMD npm start 
+# 使用啟動腳本
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

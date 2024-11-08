@@ -1,7 +1,8 @@
 const express = require('express');
 const { OpenAI } = require("openai");
 const { Pool } = require('pg');
-//require('dotenv').config();
+const cors = require('cors');
+const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 if (process.env.NODE_ENV === 'local') {
     // 如果是 'local'，则加载 .local 文件
@@ -16,17 +17,32 @@ const app = express();
 const port = process.env.PORT || 3002;
 
 app.use(express.json());
+app.use(cors({
+    origin: '*',  // 允許所有來源
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
+// 增加請求超時設置
+app.use((req, res, next) => {
+    req.setTimeout(30000);
+    res.setTimeout(30000);
+    next();
+});
+
+// 錯誤處理中間件
+app.use((err, req, res, next) => {
+    console.error('Server error:', err);
+    res.status(500).json({
+        error: 'Internal server error',
+        message: err.message
+    });
+});
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-});
-
-const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE
 });
 console.log('!!',{
     host: process.env.DB_HOST,
@@ -35,10 +51,27 @@ console.log('!!',{
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE
 })
+const pool = new Pool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE
+});
+
+pool.connect()
+    .then(() => console.log('Database connected successfully'))
+    .catch(err => console.error('Database connection error:', err));
+
 console.log(process.env.NODE_ENV)
-app.get('/health',(req,res)=>{
-    res.send("我還活著")
-})
+app.get('/health', (req, res) => {
+    // 立即響應
+    res.status(200).json({ 
+        status: 'ok',
+        message: '伺服器運作正常',
+        timestamp: new Date().toISOString()
+    });
+});
 app.post('/api/add-question', async (req, res) => {
     const { message, response } = req.body;
 
@@ -68,6 +101,11 @@ app.post('/api/add-question', async (req, res) => {
 });
 
 async function translateResponse(userQuery, response) {
+    // 先處理圖片標籤，添加樣式
+    const processedResponse = response.replace(
+        /<img(.*?)>/g, 
+        '<img$1 style="max-width: 800px; width: 100%; height: auto;">'
+    );
     const completion = await openai.chat.completions.create({
         model: "gpt-4",  // 或其他適合的模型
         messages: [
@@ -86,7 +124,7 @@ async function translateResponse(userQuery, response) {
             },
             {
                 role: "user",
-                content: `User query: "${userQuery}"\n\nResponse to translate: ${response}`
+                content: `User query: "${userQuery}"\n\nResponse to translate: ${processedResponse}`
             }
         ],
         temperature: 0.3,  // 低溫度以獲得更一致的翻譯
@@ -131,7 +169,35 @@ app.post('/api/chat', async (req, res) => {
         console.log('Query result:', result.rows);
 
         if (result.rows.length > 0 ) {  // 設置一個相似度閾值 && result.rows[0].similarity > 0.8
-            const originalResponse = result.rows[0].response;
+            if (originalResponse.includes('<img')) {
+                // 添加自定義類和容器
+                originalResponse = `
+                    <div class="response-container">
+                        ${originalResponse}
+                    </div>
+                    <style>
+                        .response-container img {
+                            max-width: 800px;
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 10px 0;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .response-container {
+                            max-width: 100%;
+                            overflow-x: auto;
+                            padding: 10px;
+                        }
+                        @media (max-width: 768px) {
+                            .response-container img {
+                                max-width: 100%;
+                            }
+                        }
+                    </style>
+                `;
+            }
             const translatedResponse = await translateResponse(queryMessage, originalResponse);
             res.json({ response: translatedResponse });
         } else {
@@ -143,6 +209,6 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0',() => {
     console.log(`Server running at http://localhost:${port}`);
 });
