@@ -17,10 +17,10 @@ services:
 
   api:
     container_name: api3
-    #image: chiennn/chatbotapi:latest
+    # image: chiennn/chatbotapi:latest
     build:
-      context: .
-      dockerfile: dockerfile
+       context: .
+       dockerfile: dockerfile
     platform: linux/amd64
     restart: always
     ports:

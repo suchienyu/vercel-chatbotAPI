@@ -39,7 +39,10 @@ services:
 
   chatbotfront:
     container_name: chatbotfront
-    image: chiennn/gemini-front:latest
+    build:
+      context: ../gemini-chatbot  # 指向前端專案的根目錄
+      dockerfile: dockerfile    
+    #image: chiennn/gemini-front:latest
     #platform: linux/amd64
     restart: always
     ports:
