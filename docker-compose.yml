@@ -19,8 +19,11 @@ services:
 
   api:
     container_name: api3
-    image: chiennn/gemini-api:latest
+    #image: chiennn/gemini-api:latest
     platform: linux/amd64
+    build:
+      context: .  # 指向前端專案的根目錄
+      dockerfile: dockerfile   
     restart: always
     ports:
       - 3002:3002
@@ -54,8 +57,11 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_PORT: ${DB_PORT}
+      POSTGRES_URL: ${POSTGRES_URL}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXT_URL: ${NEXT_URL}
+      NEXTAUTH_URL_INTERNAL: ${NEXTAUTH_URL_INTERNAL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       - postgres

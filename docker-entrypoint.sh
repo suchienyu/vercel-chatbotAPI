@@ -1,17 +1,30 @@
 #!/bin/bash
 set -e
 
-# 等待 PostgreSQL 啟動
-until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER
-do
-  echo "Waiting for PostgreSQL to start..."
+# 確保環境變數存在
+if [ -z "$DB_PASSWORD" ]; then
+    export DB_PASSWORD="password"
+fi
+
+if [ -z "$DB_USER" ]; then
+    export DB_USER="postgres1"
+fi
+
+if [ -z "$DB_HOST" ]; then
+    export DB_HOST="postgres"
+fi
+
+if [ -z "$DB_DATABASE" ]; then
+    export DB_DATABASE="postgres"
+fi
+
+# 等待 PostgreSQL
+until PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -U "${DB_USER}" -d "${DB_DATABASE}" -c '\q' 2>/dev/null; do
+  echo "Postgres is unavailable - sleeping"
   sleep 1
 done
 
-echo "PostgreSQL is up - executing command"
+echo "Postgres is up - executing command"
 
-# 檢查 vector 擴展是否已安裝
-psql -h $DB_HOST -U $DB_USER -d $DB_DATABASE -c 'CREATE EXTENSION IF NOT EXISTS vector;' || true
-
-# 啟動應用
+# 執行主程序
 exec npm start

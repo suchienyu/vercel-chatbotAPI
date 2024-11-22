@@ -4,14 +4,15 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-if (process.env.NODE_ENV === 'local') {
+console.log("process.env.NODE_ENV:",process.env.NODE_ENV)
+if ((process.env.NODE_ENV || 'local') === 'local') {
     // 如果是 'local'，则加载 .local 文件
     dotenv.config({ path: './.local' });
   } else {
     // 否则，加载 .env 文件
     dotenv.config();
   }
-const tf = require('@tensorflow/tfjs-node');
+//const tf = require('@tensorflow/tfjs-node');
 
 const app = express();
 const port = process.env.PORT || 3002;
@@ -102,10 +103,6 @@ app.post('/api/add-question', async (req, res) => {
 
 async function translateResponse(userQuery, response) {
     // 先處理圖片標籤，添加樣式
-    const processedResponse = response.replace(
-        /<img(.*?)>/g, 
-        '<img$1 style="max-width: 800px; width: 100%; height: auto;">'
-    );
     const completion = await openai.chat.completions.create({
         model: "gpt-4",  // 或其他適合的模型
         messages: [
@@ -124,7 +121,7 @@ async function translateResponse(userQuery, response) {
             },
             {
                 role: "user",
-                content: `User query: "${userQuery}"\n\nResponse to translate: ${processedResponse}`
+                content: `User query: "${userQuery}"\n\nResponse to translate: ${response}`
             }
         ],
         temperature: 0.3,  // 低溫度以獲得更一致的翻譯
@@ -169,37 +166,9 @@ app.post('/api/chat', async (req, res) => {
         console.log('Query result:', result.rows);
 
         if (result.rows.length > 0 ) {  // 設置一個相似度閾值 && result.rows[0].similarity > 0.8
-            if (originalResponse.includes('<img')) {
-                // 添加自定義類和容器
-                originalResponse = `
-                    <div class="response-container">
-                        ${originalResponse}
-                    </div>
-                    <style>
-                        .response-container img {
-                            max-width: 800px;
-                            width: 100%;
-                            height: auto;
-                            display: block;
-                            margin: 10px 0;
-                            border-radius: 8px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        }
-                        .response-container {
-                            max-width: 100%;
-                            overflow-x: auto;
-                            padding: 10px;
-                        }
-                        @media (max-width: 768px) {
-                            .response-container img {
-                                max-width: 100%;
-                            }
-                        }
-                    </style>
-                `;
-            }
+            const originalResponse = result.rows[0].response;
             const translatedResponse = await translateResponse(queryMessage, originalResponse);
-            res.json({ response: translatedResponse });
+            res.json({ response: translatedResponse.trim() });
         } else {
             res.json({ response: 'I do not have a relevant response for that message.' });
         }

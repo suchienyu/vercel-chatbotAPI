@@ -1,32 +1,30 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: postgres2
+    container_name: postgres
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       PGDATA: /var/lib/postgresql/data
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    
+
 
   api:
     container_name: api3
-    #image: chiennn/chatbotapi:latest
     build:
       context: .
       dockerfile: dockerfile
-    platform: linux/amd64
     restart: always
     ports:
       - 3002:3002
     environment:
       PORT: 3002
+      POSTGRES_URL: ${POSTGRES_URL}
       DB_USER: ${DB_USER}
       DB_HOST: ${DB_HOST}
       DB_DATABASE: ${DB_DATABASE}
@@ -34,20 +32,19 @@ services:
       DB_PORT: ${DB_PORT}
     depends_on:
       - postgres
-    
+
 
   chatbotfront:
     container_name: chatbotfront
-    #image: chiennn/chatbot:latest
-    #platform: linux/amd64
     build:
-      context: /Users/chien/ai-chatbot
-      dockerfile: dockerfile
+      context: ../gemini-chatbot  # 指向前端專案的根目錄
+      dockerfile: dockerfile    
     restart: always
     ports:
       - 3000:3000
     environment:
       PORT: 3000
+      POSTGRES_URL: ${POSTGRES_URL}
       DB_USER: ${DB_USER}
       DB_HOST: ${DB_HOST}
       DB_DATABASE: ${DB_DATABASE}
@@ -55,10 +52,11 @@ services:
       DB_PORT: ${DB_PORT}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_URL_INTERNAL: ${NEXTAUTH_URL_INTERNAL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       - postgres
-    
     
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -68,13 +66,16 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       PGADMIN_LISTEN_PORT: ${PGADMIN_LISTEN_PORT}
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
+      PGADMIN_CONFIG_COOKIE_SAMESITE: "'Lax'"
+      PGADMIN_CONFIG_WTF_CSRF_TIME_LIMIT: "7200"
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: "False" 
     ports:
       - "8888:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres
-    
 
 volumes:
   postgres_data:
