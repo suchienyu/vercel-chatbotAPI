@@ -1,28 +1,11 @@
-# FROM node:latest 
-# RUN apt-get update && apt-get install -y \
-#     curl \
-#     postgresql-client \
-#     && rm -rf /var/lib/apt/lists/*
-
-# WORKDIR /chien/src/app 
-
-# COPY package*.json ./ 
-
-# RUN npm install 
-
-# COPY docker-entrypoint.sh /usr/local/bin/
-# RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# COPY . .
-
-# ENV NODE_ENV production
-# ENV PORT=3002
-
-# RUN rm -rf node_modules && npm install
-# EXPOSE 3002
-# # 使用啟動腳本
-# ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 FROM node:18
+
+ARG PORT
+ARG DB_USER
+ARG DB_HOST
+ARG DB_DATABASE
+ARG DB_PASSWORD
+ARG DB_PORT
 
 # 安裝所有必要的系統依賴
 RUN apt-get update && apt-get install -y \
@@ -70,6 +53,11 @@ COPY . .
 # 環境變數設定
 ENV NODE_ENV=production
 ENV PORT=3002
+ENV DB_USER=${DB_USER}
+ENV DB_HOST=${DB_HOST}
+ENV DB_DATABASE=${DB_DATABASE}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV DB_PORT=${DB_PORT}
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 EXPOSE 3002
