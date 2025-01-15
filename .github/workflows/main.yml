@@ -55,5 +55,5 @@ jobs:
             # 運行新的容器
             docker run -d \
               --name chatbotapi-api-container \
-              -p 3003:3000 \
+              -p 3002:3000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest
