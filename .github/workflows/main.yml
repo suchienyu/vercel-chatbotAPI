@@ -45,18 +45,16 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # 停止並移除舊的容器（如果存在）
-            docker stop chatbotapi-api-container || true
-            docker rm chatbotapi-api-container || true
+            # 進入專案目錄（確保 docker-compose.yml 在這裡）
+            cd /home/ubuntu/vercel-chatbotAPI
             
-            # 移除舊的映像檔
+            # 停止現有的容器
+            docker compose down
+            
+            # 清理 API 容器的快取和映像檔
+            docker builder prune -f
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest || true
-  
-            # 使用 no-cache 重新建構 API container
-            docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest .
-  
-            # 運行新建構的容器
-            docker run -d \
-              --name chatbotapi-api-container \
-              -p 3002:3000 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest
+            
+            # 重新建構 API 容器並啟動所有服務
+            docker compose build --no-cache api
+            docker compose up -d
