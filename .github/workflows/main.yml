@@ -48,13 +48,6 @@ jobs:
             # 進入專案目錄（確保 docker-compose.yml 在這裡）
             cd /home/ubuntu/vercel-chatbotAPI
             
-            # 停止現有的容器
-            docker compose down
-            
-            # 清理 API 容器的快取和映像檔
-            docker builder prune -f
-            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest || true
-            
             # 重新建構 API 容器並啟動所有服務
             docker compose build --no-cache api
             docker compose up -d
