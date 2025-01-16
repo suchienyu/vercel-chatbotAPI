@@ -19,11 +19,11 @@ services:
 
   api:
     container_name: api3
-    #image: chiennn/gemini-api:latest
+    image: chiennn/chatbotapi-api
     platform: linux/amd64
-    build:
-      context: .  # 指向前端專案的根目錄
-      dockerfile: dockerfile   
+    # build:
+    #   context: .  # 指向前端專案的根目錄
+    #   dockerfile: dockerfile   
     restart: always
     ports:
       - 3002:3002

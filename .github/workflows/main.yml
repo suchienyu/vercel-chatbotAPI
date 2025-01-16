@@ -49,10 +49,13 @@ jobs:
             docker stop chatbotapi-api-container || true
             docker rm chatbotapi-api-container || true
             
-            # 拉取最新的映像檔
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest
-            
-            # 運行新的容器
+            # 移除舊的映像檔
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest || true
+  
+            # 使用 no-cache 重新建構 API container
+            docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/chatbotapi-api:latest .
+  
+            # 運行新建構的容器
             docker run -d \
               --name chatbotapi-api-container \
               -p 3002:3000 \
