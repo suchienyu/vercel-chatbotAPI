@@ -34,6 +34,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_PORT: ${DB_PORT}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       - postgres
     extra_hosts:
