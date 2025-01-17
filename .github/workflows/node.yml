@@ -22,18 +22,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Use Node.js
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20.x'
+        node-version: '18'
 
     - name: Install pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
-
+          
     - name: Install dependencies
-      run: pnpm install --no-frozen-lockfile
-        
+      run: pnpm install
+
     - name: Run tests
-      run: pnpm exec jest
+      run: pnpm test
