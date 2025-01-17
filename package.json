@@ -6,11 +6,6 @@
     "test": "node ./node_modules/jest/bin/jest.js",
     "dev": "NODE_ENV=local nodemon server.js"
   },
-  "jest": {
-    "testMatch": [
-      "**/tests/**/*.js"
-    ]
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
