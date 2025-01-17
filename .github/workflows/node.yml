@@ -32,6 +32,7 @@ jobs:
         npm install
         npm install -D supertest jest
         pwd
+        ls
 
     - name: Run tests
       run: npm test
