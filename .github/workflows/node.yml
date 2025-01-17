@@ -30,8 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
-        npm install -D supertest jest
-        pwd
+        cd node_modules/.bin
         ls
 
     - name: Run tests
