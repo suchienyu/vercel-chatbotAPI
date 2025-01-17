@@ -4,14 +4,14 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-console.log("process.env.NODE_ENV:",process.env.NODE_ENV)
+console.log("process.env.NODE_ENV:", process.env.NODE_ENV)
 if ((process.env.NODE_ENV || 'local') === 'local') {
     // 如果是 'local'，则加载 .local 文件
     dotenv.config({ path: './.local' });
-  } else {
+} else {
     // 否则，加载 .env 文件
     dotenv.config();
-  }
+}
 //const tf = require('@tensorflow/tfjs-node');
 
 const app = express();
@@ -45,7 +45,7 @@ app.use((err, req, res, next) => {
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
-console.log('!!',{
+console.log('!!', {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
@@ -67,7 +67,7 @@ pool.connect()
 console.log(process.env.NODE_ENV)
 app.get('/health', (req, res) => {
     // 立即響應
-    res.status(200).json({ 
+    res.status(200).json({
         status: 'ok',
         message: '伺服器運作正常',
         timestamp: new Date().toISOString()
@@ -147,7 +147,7 @@ app.post('/api/chat', async (req, res) => {
     console.log('Received message:', queryMessage);
     try {
         const queryVector = await getEmbedding(queryMessage);
-        
+
         if (queryVector.length !== 1536) {
             throw new Error(`Expected 1536 dimensions, but got ${queryVector.length}`);
         }
@@ -165,7 +165,7 @@ app.post('/api/chat', async (req, res) => {
 
         console.log('Query result:', result.rows);
 
-        if (result.rows.length > 0 ) {  // 設置一個相似度閾值 && result.rows[0].similarity > 0.8
+        if (result.rows.length > 0) {  // 設置一個相似度閾值 && result.rows[0].similarity > 0.8
             const originalResponse = result.rows[0].response;
             const translatedResponse = await translateResponse(queryMessage, originalResponse);
             res.json({ response: translatedResponse.trim() });
@@ -178,6 +178,10 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-app.listen(port, '0.0.0.0',() => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+if (require.main === module) {
+    app.listen(port, '0.0.0.0', () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
