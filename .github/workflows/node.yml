@@ -29,9 +29,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm install
-        cd node_modules/.bin
-        ls
+        npm install jest -g
 
     - name: Run tests
       run: npm test
