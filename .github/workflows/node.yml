@@ -31,6 +31,7 @@ jobs:
       run: |
         npm install
         npm install -D supertest jest
+        pwd
 
     - name: Run tests
       run: npm test
