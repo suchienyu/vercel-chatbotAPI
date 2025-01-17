@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/.bin/jest",
+    "test": "jest",
     "dev": "NODE_ENV=local nodemon server.js"
   },
   "keywords": [],

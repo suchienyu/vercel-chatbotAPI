@@ -35,9 +35,8 @@ jobs:
     
     - name: Install dependencies
       run: |
+        npm install -g pnpm
         pnpm install
-        pnpm add -D jest @types/jest
-        pnpm list jest
 
     - name: Run tests
-      run: pnpm exec jest
+      run: pnpm run test
