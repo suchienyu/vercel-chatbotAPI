@@ -22,13 +22,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Install pnpm
-      run: npm install -g pnpm
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
 
     - name: Install dependencies
       run: |
-        pnpm install
-        pnpm add -D supertest
+        npm install
+        npm install -D supertest jest
 
     - name: Run tests
-      run: npx jest
+      run: npm test
