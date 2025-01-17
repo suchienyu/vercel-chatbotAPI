@@ -26,7 +26,9 @@ jobs:
       run: npm install -g pnpm
 
     - name: Install dependencies
-      run: pnpm install --no-frozen-lockfile
+      run: |
+        pnpm install
+        pnpm add -D supertest
 
     - name: Run tests
       run: npx jest
